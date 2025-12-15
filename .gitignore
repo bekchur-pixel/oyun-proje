@@ -1,0 +1,16 @@
+# General
+.DS_Store
+Thumbs.db
+*.log
+logs/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store
+
+# IDE
+.vscode/
+.idea/
