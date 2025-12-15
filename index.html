@@ -12,7 +12,7 @@
       <div>
         <p class="eyebrow">HTML + JavaScript</p>
         <h1>Tetris</h1>
-        <p class="lede">Vanilla JS ile basit, oynanabilir Tetris. Tarayici yansekilde calisir.</p>
+        <p class="lede">Vanilla JS ile basit, oynanabilir Tetris. Tarayici icinde dogrudan calisir.</p>
       </div>
       <div class="stat-badge" id="status-text">Hazir</div>
     </header>
@@ -42,15 +42,26 @@
         </div>
 
         <div class="card">
+          <h2 class="card-title">Tutulan</h2>
+          <canvas id="hold" width="120" height="120" aria-label="Tutulan parca"></canvas>
+          <p class="hint">C tusu ile tut/degistir (her dususte bir kez).</p>
+        </div>
+
+        <div class="card">
           <h2 class="card-title">Kontroller</h2>
           <ul class="controls">
-            <li>← / → : saga/sola</li>
-            <li>↓ : yumusak dusus</li>
-            <li>↑ : dondur</li>
+            <li>&larr; / &rarr; : saga/sola</li>
+            <li>&darr; : yumusak dusus</li>
+            <li>&uarr; : dondur</li>
             <li>Space : sert dusus</li>
+            <li>C : parca tut/degistir</li>
             <li>P : duraklat</li>
             <li>R : sifirla</li>
           </ul>
+          <div class="actions">
+            <button id="btn-pause">Duraklat/Devam</button>
+            <button id="btn-reset" class="secondary">Yeniden Baslat</button>
+          </div>
         </div>
       </aside>
     </section>

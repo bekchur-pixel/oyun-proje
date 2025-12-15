@@ -2,11 +2,15 @@ const canvas = document.getElementById("board");
 const ctx = canvas.getContext("2d");
 const previewCanvas = document.getElementById("preview");
 const pctx = previewCanvas.getContext("2d");
+const holdCanvas = document.getElementById("hold");
+const hctx = holdCanvas.getContext("2d");
 
 const scoreEl = document.getElementById("score-value");
 const linesEl = document.getElementById("lines-value");
 const levelEl = document.getElementById("level-value");
 const statusEl = document.getElementById("status-text");
+const pauseBtn = document.getElementById("btn-pause");
+const resetBtn = document.getElementById("btn-reset");
 
 const COLS = 10;
 const ROWS = 20;
@@ -53,12 +57,24 @@ const COLORS = {
 let board = [];
 let current = null;
 let next = null;
+let hold = null;
+let holdUsed = false;
 let score = 0;
 let lines = 0;
 let level = 1;
 let dropTimer = null;
 let paused = false;
 let gameOver = false;
+
+function hexToRgb(hex) {
+  const normalized = hex.replace("#", "");
+  const bigint = parseInt(normalized, 16);
+  return {
+    r: (bigint >> 16) & 255,
+    g: (bigint >> 8) & 255,
+    b: bigint & 255,
+  };
+}
 
 function cloneShape(shape) {
   return shape.map((row) => [...row]);
@@ -86,6 +102,8 @@ function resetGame() {
   level = 1;
   paused = false;
   gameOver = false;
+  hold = null;
+  holdUsed = false;
   next = randomPiece();
   spawnPiece();
   updateHud();
@@ -98,11 +116,13 @@ function spawnPiece() {
   current = next;
   current.x = Math.floor(COLS / 2 - current.shape[0].length / 2);
   current.y = 0;
+  holdUsed = false;
   next = randomPiece();
   if (collides(current.shape, current.x, current.y)) {
     endGame();
   }
   updatePreview();
+  updateHold();
 }
 
 function collides(shape, offsetX, offsetY) {
@@ -213,6 +233,26 @@ function hardDrop() {
   }
 }
 
+function holdPiece() {
+  if (holdUsed || !current) return;
+  if (!hold) {
+    hold = { ...current, shape: cloneShape(current.shape) };
+    spawnPiece();
+  } else {
+    const temp = hold;
+    hold = { ...current, shape: cloneShape(current.shape) };
+    current = { ...temp, shape: cloneShape(temp.shape) };
+    current.x = Math.floor(COLS / 2 - current.shape[0].length / 2);
+    current.y = 0;
+    if (collides(current.shape, current.x, current.y)) {
+      endGame();
+    }
+  }
+  holdUsed = true;
+  updateHold();
+  draw();
+}
+
 function dropDelay() {
   return Math.max(120, 800 - (level - 1) * 50);
 }
@@ -282,6 +322,23 @@ function drawCurrent() {
   }
 }
 
+function drawGhost() {
+  if (!current) return;
+  let ghostY = current.y;
+  while (!collides(current.shape, current.x, ghostY + 1)) {
+    ghostY += 1;
+  }
+  const { r, g, b } = hexToRgb(current.color);
+  const ghostColor = `rgba(${r}, ${g}, ${b}, 0.18)`;
+  for (let y = 0; y < current.shape.length; y++) {
+    for (let x = 0; x < current.shape[y].length; x++) {
+      if (current.shape[y][x]) {
+        drawCell(ctx, current.x + x, ghostY + y, ghostColor);
+      }
+    }
+  }
+}
+
 function drawPreview() {
   pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
   pctx.fillStyle = "#0b1224";
@@ -295,6 +352,25 @@ function drawPreview() {
     for (let x = 0; x < shape[y].length; x++) {
       if (shape[y][x]) {
         drawCell(pctx, offsetX + x, offsetY + y, next.color, 20);
+      }
+    }
+  }
+}
+
+function updateHold() {
+  hctx.clearRect(0, 0, holdCanvas.width, holdCanvas.height);
+  hctx.fillStyle = "#0b1224";
+  hctx.fillRect(0, 0, holdCanvas.width, holdCanvas.height);
+  hctx.strokeStyle = "#1f2937";
+  hctx.strokeRect(0.5, 0.5, holdCanvas.width - 1, holdCanvas.height - 1);
+  if (!hold) return;
+  const shape = hold.shape;
+  const offsetX = Math.floor((4 - shape[0].length) / 2) + 1;
+  const offsetY = Math.floor((4 - shape.length) / 2) + 1;
+  for (let y = 0; y < shape.length; y++) {
+    for (let x = 0; x < shape[y].length; x++) {
+      if (shape[y][x]) {
+        drawCell(hctx, offsetX + x, offsetY + y, hold.color, 20);
       }
     }
   }
@@ -314,6 +390,7 @@ function draw() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   drawGrid();
   drawBoard();
+  drawGhost();
   drawCurrent();
   if (gameOver) {
     drawOverlay("Oyun bitti - R ile yeniden baslat");
@@ -359,7 +436,16 @@ function togglePause() {
 }
 
 function handleKeydown(e) {
-  const handled = ["ArrowLeft", "ArrowRight", "ArrowDown", "ArrowUp", "Space", "KeyP", "KeyR"];
+  const handled = [
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowDown",
+    "ArrowUp",
+    "Space",
+    "KeyP",
+    "KeyR",
+    "KeyC",
+  ];
   if (handled.includes(e.code)) {
     e.preventDefault();
   }
@@ -380,6 +466,9 @@ function handleKeydown(e) {
     case "Space":
       if (!paused) hardDrop();
       break;
+    case "KeyC":
+      if (!paused) holdPiece();
+      break;
     case "KeyP":
       togglePause();
       break;
@@ -393,11 +482,15 @@ function handleKeydown(e) {
 
 document.addEventListener("keydown", handleKeydown);
 
+pauseBtn?.addEventListener("click", togglePause);
+resetBtn?.addEventListener("click", resetGame);
+
 function init() {
   canvas.width = COLS * CELL;
   canvas.height = ROWS * CELL;
   resetGame();
   drawPreview();
+  updateHold();
 }
 
 init();
