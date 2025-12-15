@@ -3,16 +3,59 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Oyun Proje</title>
+  <title>Tetris | Oyun Proje</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="app">
-    <h1>Oyun Proje</h1>
-    <p>HTML ve JavaScript ile basit ba?lang?? sayfas?.</p>
-    <button id="action-btn">Selam ver</button>
-    <div id="output" class="output" aria-live="polite"></div>
+  <main class="shell">
+    <header class="heading">
+      <div>
+        <p class="eyebrow">HTML + JavaScript</p>
+        <h1>Tetris</h1>
+        <p class="lede">Vanilla JS ile basit, oynanabilir Tetris. Tarayici yansekilde calisir.</p>
+      </div>
+      <div class="stat-badge" id="status-text">Hazir</div>
+    </header>
+
+    <section class="game-area">
+      <canvas id="board" width="300" height="600" aria-label="Tetris board"></canvas>
+
+      <aside class="panel">
+        <div class="card">
+          <div class="stat">
+            <span class="label">Skor</span>
+            <span id="score-value" class="value">0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Satir</span>
+            <span id="lines-value" class="value">0</span>
+          </div>
+          <div class="stat">
+            <span class="label">Seviye</span>
+            <span id="level-value" class="value">1</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Siradaki</h2>
+          <canvas id="preview" width="120" height="120" aria-label="Siradaki parca"></canvas>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Kontroller</h2>
+          <ul class="controls">
+            <li>← / → : saga/sola</li>
+            <li>↓ : yumusak dusus</li>
+            <li>↑ : dondur</li>
+            <li>Space : sert dusus</li>
+            <li>P : duraklat</li>
+            <li>R : sifirla</li>
+          </ul>
+        </div>
+      </aside>
+    </section>
   </main>
+
   <script src="script.js"></script>
 </body>
 </html>
